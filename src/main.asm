@@ -12,19 +12,18 @@ start::
     ; enable only vblank interrupts
     ld		a, IEF_VBLANK
     ldh		[rIE], a	; load it to the hardware register
-    ei
-
+    
     ; standard inits
     sub		a	;	a = 0
     ldh		[rSTAT], a	; init status
-    
+
     ldh		[rSCY], a
     ldh		[rSCX], a
 
     ldh		[rLCDC], a	; init LCD to everything off
- 
+    
     call    init
-
+    ei
     ; enable LCD, sprites, bg
     ld      a, LCDCF_ON | LCDCF_BG8000 | LCDCF_OBJON | LCDCF_BGON
     ldh		[rLCDC], a
