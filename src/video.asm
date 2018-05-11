@@ -63,7 +63,7 @@ init_palette::
 ; e = tile x
 ; d = tile index
 ;Destroys:
-; BC
+; BC, HL
 set_bg_tile::
 
     push de

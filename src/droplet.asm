@@ -1,6 +1,6 @@
 INCLUDE "gbhw.inc"
 
-INITIAL_DROPLETS   EQU 2
+INITIAL_DROPLETS   EQU 20
 
 SECTION "droplet vars", WRAM0
 
@@ -79,7 +79,7 @@ get_random_y
     ld     a,e
 
     push hl
-    and     %00001111
+    and     %00001110   ; we only want an even number
     ld      e,a
     ld      h,10
     call mul_8b      ; l now has e * 10
@@ -193,19 +193,16 @@ move_droplets_loop
 
 
     ; divide by 8 to get y tile coord (0 - 9)
-    push    hl
-    ld      h, 0
-    ld      l, e
-    ld      d, 8
-    push    bc
-    call    div_8b    ; hl = hl / d
-    pop     bc
-
     ld      a, [tile]
     ld      d, a
-    ld      a, l
-    ld      e, c
 
+    ld      a, e
+    rrca
+    rrca
+    rrca
+
+    ld      e, c
+    push    hl
     push    bc
     call    set_bg_tile     ; a = y, e = x, d = tile
     pop     bc
