@@ -7,7 +7,7 @@ SECTION "math", ROM0
 ;Inputs:
 ;  E, H
 ;Outputs:
-;  L = E * H
+;  HL = E * H
 ;Destroys:
 ;  BC
 
@@ -24,6 +24,25 @@ mul_8b_skip:
     jr      nz, mul_8b_loop
     ret
 
+; Outputs:
+;   HL = HL / D
+; Destroys:
+;   bc
+div_8b::                        ; this routine performs the operation HL=HL/D
+    xor     a                   ; clearing the upper 8 bits of AHL
+    ld      b, 16               ; the length of the dividend (16 bits)
+div_8b_loop:
+    add     hl, hl              ; advancing a bit
+    rla
+    cp      d                   ; checking if the divisor divides the digits chosen (in A)
+    jp      c, div_8b_next_bit  ; if not, advancing without subtraction
+    sub     d                   ; subtracting the divisor
+    inc     l                   ; and setting the next digit of the quotient
+div_8b_next_bit:
+    dec     b
+    jr      nz, div_8b_loop
+    ret
+
 ;Inputs:
 ;  A
 ;Outputs:
@@ -33,21 +52,21 @@ mul_8b_skip:
 ;  HL
 
 mod_10::
-    ld      h,a                     ;add nibbles 
+    ld      h,a                     ;add nibbles
     rrca
     rrca
     rrca
-    rrca 
-    add     a,h 
-    adc     a,0                    ;n mod 15 (+1) in both nibbles 
-    daa 
+    rrca
+    add     a,h
+    adc     a,0                    ;n mod 15 (+1) in both nibbles
+    daa
     ld      l,a
     sub     h                      ; Test if quotient is even or odd
-    rra 
-    sbc     a,a 
-    and     5 
+    rra
+    sbc     a,a
+    and     5
     add     a,l
-    daa 
+    daa
     and     $0F
     ret
 
@@ -55,7 +74,7 @@ mod_10::
 fast_random::
     push bc
     ld a, [seed]
-    ld b, a 
+    ld b, a
 
     rrca ; multiply by 32
     rrca

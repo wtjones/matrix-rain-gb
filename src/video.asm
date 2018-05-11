@@ -57,3 +57,41 @@ init_palette::
                 ; set same as background
     ld    [rOBP1], a
     ret
+
+;Inputs:
+; a = tile y
+; e = tile x
+; d = tile index
+;Destroys:
+; BC
+set_bg_tile::
+
+    push de
+    ; tile location is _SCRN0 + x + (y * 32)
+    ld      e, a
+    ld      h, 32
+
+    call mul_8b     ; hl = e * h
+    pop     de
+
+    push    hl
+    pop     bc
+    ld      hl, _SCRN0
+    add     hl, bc      ; hl is now _SCRN0 + (y * 32)
+
+    push    de
+    ld      d, 0
+    add     hl, de      ; hl is now _SCRN0 + x + (y * 32)
+
+    pop     de
+
+    ; push    af
+    ; di
+    ; lcd_WaitVRAM
+    ; pop     af
+    ; ld      [hl], d
+    ; ei
+
+    ld      [hl], d
+
+    ret

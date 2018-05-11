@@ -19,6 +19,7 @@
 ;         ENDM
 
         INCLUDE "gbhw.inc"
+        INCLUDE "memory.inc"
 
 ; Macro that pauses until VRAM available.
 
@@ -33,12 +34,6 @@
 ;         SECTION "Memory1 Code",ROM0
 
 
-
-lcd_WaitVRAM: MACRO
-        ld      a,[rSTAT]       ; <---+
-        and     STATF_BUSY      ;     |
-        jr      nz,@-4          ; ----+
-        ENDM
 
         
 
