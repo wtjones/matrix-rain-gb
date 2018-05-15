@@ -1,6 +1,6 @@
 INCLUDE "gbhw.inc"
 
-INITIAL_DROPLETS   EQU 20
+INITIAL_DROPLETS   EQU 10
 
 SECTION "droplet vars", WRAM0
 
@@ -170,16 +170,54 @@ move_droplets_loop
     ld      [tile],a
 .dont_cycle_character
 
+
+    ld      a, [sprite_y]
+    ld      [hl+], a
+    inc     hl
+    ld      a, [tile]
+    ld      [hl+], a
+    inc     hl
+
+
+    inc bc
+    ld      a,[total_droplets]
+    cp      c
+    ;ld	a,b		;if b or c != 0,
+    ;or	c		;
+    jp	nz,move_droplets_loop	;then loop.
+    ret
+
+
+
+
+
+
+set_droplets_to_bg::
+    ld      hl, droplets
+    ld      bc, 0
+
+set_droplets_to_bg_loop
+
+    ; load variables with current record
+    ld      a, [hl+]
+    ld      [sprite_y], a
+    inc     hl
+    ld      a, [hl]
+    ld      [tile], a
+    dec     hl
+    dec     hl
+
+
     ; burn tile to background
     ld      a, [sprite_y]
 
     ; are we onscreen?
     ; visible range is 16 -> 159
     cp      a, 16   ; carry flag set if 16 > y
-    jp      c, .write_to_bg_skip
+    jp      c, .set_droplets_to_bg_skip
 
     cp      a, 159   ; carry flag set if 159 > y
-    jp      nc, .write_to_bg_skip
+    jp      nc, .set_droplets_to_bg_skip
 
     ; adjust to non-OAM coords
     sub     16
@@ -189,7 +227,7 @@ move_droplets_loop
     ; mod 8
     and     %00000111
 
-    jp      nz, .write_to_bg_skip
+    jp      nz, .set_droplets_to_bg_skip
 
 
     ; divide by 8 to get y tile coord (0 - 9)
@@ -209,15 +247,13 @@ move_droplets_loop
     pop     hl
 
 
-.write_to_bg_skip
+.set_droplets_to_bg_skip
 
 
     ; burn current character to tile map
-    ld      a, [sprite_y]
-    ld      [hl+], a
     inc     hl
-    ld      a, [tile]
-    ld      [hl+], a
+    inc     hl
+    inc     hl
     inc     hl
 
     inc bc
@@ -225,5 +261,6 @@ move_droplets_loop
     cp      c
     ;ld	a,b		;if b or c != 0,
     ;or	c		;
-    jp	nz,move_droplets_loop	;then loop.
+    jp	nz, set_droplets_to_bg_loop	;then loop.
     ret
+

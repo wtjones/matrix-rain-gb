@@ -1,4 +1,5 @@
 INCLUDE	"gbhw.inc"
+INCLUDE "memory.inc"
 
 SECTION "video vars", WRAM0
 
@@ -85,13 +86,13 @@ set_bg_tile::
 
     pop     de
 
-    ; push    af
-    ; di
-    ; lcd_WaitVRAM
-    ; pop     af
-    ; ld      [hl], d
-    ; ei
-
+    ;push    af
+    ;di
+    lcd_WaitVRAM
+    ;pop     af
     ld      [hl], d
+    ;ei
+
+    ;ld      [hl], d
 
     ret
