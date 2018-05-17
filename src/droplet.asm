@@ -29,8 +29,6 @@ init_droplets_loop
 
     push bc
 
-
-
     ; y
     call    get_random_y
     ld      a, e
@@ -53,9 +51,9 @@ init_droplets_loop
     ; tile
     inc     hl
 
-    call fast_random
-
-    ld     a,e
+    call    fast_random
+    ld      a, e
+    and     %00001111
     ld      [hl],a
 
     ; attributes
@@ -69,7 +67,7 @@ init_droplets_loop
     cp      c
 
     jr	nz,init_droplets_loop	;then loop.
-    ret			;done
+    ret
 
 
 get_random_y
@@ -105,7 +103,6 @@ move_droplets_loop
     ld      [tile], a
     dec     hl
     dec     hl
-
 
 
 .   ; determine droplet type 0-3
@@ -163,11 +160,13 @@ move_droplets_loop
     jp      nz, .skip_tile_reset
     call    fast_random
     ld      a, e
+    and     %00001111   ; only want 0-15
     ld      [tile],a
 .skip_tile_reset
     ld      a,  [tile]
     inc     a
-    ld      [tile],a
+    and     %00001111   ; only want 0-15
+    ld      [tile], a
 .dont_cycle_character
 
 
