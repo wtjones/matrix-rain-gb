@@ -66,17 +66,21 @@ init_palette::
 ;Destroys:
 ; BC, HL
 set_bg_tile::
-
-    push de
     ; tile location is _SCRN0 + x + (y * 32)
-    ld      e, a
-    ld      h, 32
 
-    call mul_8b     ; hl = e * h
-    pop     de
+    ; multiply a by 32, store in bc (works for low y values at least)
+    rrca
+    rrca
+    rrca
 
-    push    hl
-    pop     bc
+    ld      l, a
+    and     %11110000
+    ld      c, a
+
+    ld      a, l
+    and     %00001111
+    ld      b, a
+
     ld      hl, _SCRN0
     add     hl, bc      ; hl is now _SCRN0 + (y * 32)
 
