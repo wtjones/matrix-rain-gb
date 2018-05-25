@@ -238,7 +238,15 @@ set_droplets_to_bg_loop
     rrca
     rrca
 
+    ; is a > 17?
+    ld      e, a
+    sub     a, 18
+    jr      nc, .set_droplets_to_bg_skip
+    ld      a, e
+
     ld      e, c
+
+    ; burn current character to tile map
     push    hl
     push    bc
     call    set_bg_tile     ; a = y, e = x, d = tile
@@ -249,14 +257,13 @@ set_droplets_to_bg_loop
 .set_droplets_to_bg_skip
 
 
-    ; burn current character to tile map
     inc     hl
     inc     hl
     inc     hl
     inc     hl
 
     inc bc
-    ld      a,[total_droplets]
+    ld      a, [total_droplets]
     cp      c
     ;ld	a,b		;if b or c != 0,
     ;or	c		;
