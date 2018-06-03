@@ -9,7 +9,7 @@ total_droplets:: DS 1
 sprite_x: DS 1
 sprite_y: DS 1
 tile: DS 1
-
+fade_buffer:: DS _SCRN1 - _SCRN0
 
 SECTION "droplet", ROM0
 
@@ -156,8 +156,9 @@ move_droplets_loop
     jp      nz, .dont_cycle_character
 
     ld      a,  [sprite_y]
-    cp      16
-    jp      nz, .skip_tile_reset
+    cp      15          ; outside of first visible coord?
+                        ; todo: should probably 'park' the droplets
+    jp      nc, .skip_tile_reset
     call    fast_random
     ld      a, e
     and     %00001111   ; only want 0-15
@@ -185,10 +186,6 @@ move_droplets_loop
     ;or	c		;
     jp	nz,move_droplets_loop	;then loop.
     ret
-
-
-
-
 
 
 set_droplets_to_bg::
@@ -229,7 +226,7 @@ set_droplets_to_bg_loop
     jp      nz, .set_droplets_to_bg_skip
 
 
-    ; divide by 8 to get y tile coord (0 - 9)
+    ; divide by 8 to get y tile coord (0 - 17)
     ld      a, [tile]
     ld      d, a
 

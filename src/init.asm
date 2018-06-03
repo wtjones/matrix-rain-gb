@@ -1,3 +1,4 @@
+INCLUDE	"gbhw.inc"
 
 RANDOM_SEED         EQU 10
 START_TILE_SOURCE   EQU $8E00
@@ -13,10 +14,21 @@ init::
     call    init_tile_fade
     call    init_palette
 
-    ld     hl, $9800
-    ld  bc, 256 * 4
+    ; clear tiles
+    ld      hl, $9800
+    ld      bc, 256 * 4
     ld      a, $FF
     call    mem_SetVRAM
+
+    ; clear fade buffer
+    ld      hl, fade_buffer
+    ld      bc, _SCRN1 - _SCRN0
+    xor     a
+    call    mem_Set
+
+    ; init current_fade_row_offset to zero
+    xor     a
+    ld      [current_fade_tile_y], a
 
     ld      a, RANDOM_SEED
     ld      [seed],a
