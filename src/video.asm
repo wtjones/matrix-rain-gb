@@ -1,7 +1,9 @@
 INCLUDE	"gbhw.inc"
 INCLUDE "memory.inc"
 
-TILE_FADE_RATE      EQU 16
+TILE_FADE_START         EQU 15
+TILE_FADE_RATE          EQU 4
+TILE_FADE_ROW_LENGTH    EQU 4   ; SCRN_X_B
 
 SECTION "video vars", WRAM0
 
@@ -93,7 +95,7 @@ set_bg_tile::
     add     hl, bc      ; hl is now fade_buffer + (y * 32)
     ld      d, 0
     add     hl, de      ; hl is now fade_buffer + x + (y * 32)
-    ld      [hl], $FF
+    ld      [hl], TILE_FADE_START
 
     ; set the tile
     ld      hl, _SCRN0
@@ -104,10 +106,8 @@ set_bg_tile::
 
     pop     de
 
-    ;push    af
-    ;di
-    lcd_WaitVRAM
-    ;pop     af
+      lcd_WaitVRAM      ; a safety-net, but if it has to halt, corruption
+                        ; of register a could still occur even with the push/pop
     ld      [hl], d
     ;ei
 
@@ -147,7 +147,7 @@ update_tile_fade::
     ld      hl, fade_buffer
     add     hl, bc      ; hl is now fade_buffer + (y * 32)
 
-    ld      c, 20
+    ld      c, TILE_FADE_ROW_LENGTH
     inc	    c
     dec     hl
     dec     de
@@ -156,15 +156,35 @@ update_tile_fade::
     ld      a, [hl]    ; read the fade buffer for this tile
     cp      0
     jr      z, .skip
-    sub     a, TILE_FADE_RATE
-    ld      [hl], a
-
-    cp      191
-    jr      nz, .skip
-    lcd_WaitVRAM
+    sub     TILE_FADE_RATE
+    jr      nc, .skip_clear_tile
+    ; fade overflowed, so set it back to zero and clear the tile
+    xor     a
+    ld      [hl], a     ; update the fade value
     ld      a, 255
-    ld      [de], a     ; set bg tile
+    jr      .write_bg
+.skip_clear_tile
+    ld      [hl], a     ; update the fade value
+    cp      11
+    jr      z,  .fade_tile
+    cp      7
+    jr      z,  .fade_tile
+    cp      3
+    jr      z,  .fade_tile
 
+    jr      .skip
+
+.fade_tile
+    ld      a, [de]
+    add     16
+.write_bg
+
+    push    af
+    lcd_WaitVRAM        ; a safety-net, but if it has to halt, corruption
+                        ; of register a could still occur even with the push/pop
+    pop     af
+    ld      [de], a     ; set bg tile
+    ei
 .skip
     inc     hl
     inc     de
