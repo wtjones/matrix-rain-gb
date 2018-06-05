@@ -26,7 +26,6 @@ init::
     xor     a
     call    mem_Set
 
-    ; init current_fade_row_offset to zero
     xor     a
     ld      [current_fade_tile_y], a
 

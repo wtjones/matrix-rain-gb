@@ -30,11 +30,15 @@ start::
 
 
 .loop:
+    xor     a
+    ld      [tile_command_list_length], a
     call    move_droplets
-    call    wait_vblank
-    call    _HRAM               ; start dma
     call    set_droplets_to_bg
     call    update_tile_fade
+    call    wait_vblank
+    call    _HRAM               ; start dma
+    call    apply_tile_command_list
+
     jr .loop
 
 draw:

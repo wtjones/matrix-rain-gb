@@ -1,6 +1,6 @@
 INCLUDE "gbhw.inc"
 
-INITIAL_DROPLETS   EQU 4
+INITIAL_DROPLETS   EQU 20
 
 SECTION "droplet vars", WRAM0
 

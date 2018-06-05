@@ -3,16 +3,18 @@ INCLUDE "memory.inc"
 
 TILE_FADE_START         EQU 15
 TILE_FADE_RATE          EQU 4
-TILE_FADE_ROW_LENGTH    EQU 4   ; SCRN_X_B
+TILE_FADE_ROW_LENGTH    EQU  SCRN_X_B
+TILE_COMMAND_LIST_MAX     EQU 50
+TILE_COMMAND_LIST_SIZE    EQU 4
 
 SECTION "video vars", WRAM0
 
 frame_count:: DS 1
 vblank_flag:: DS 1
-current_fade_row_offset:: DS 2
-current_fade_ptr:: DS 2
-current_tile_ptr:: DS 2
 current_fade_tile_y:: DS 1
+tile_command_list_length:: DS 1   ; offset of the next available record
+tile_command_list:: DS TILE_COMMAND_LIST_MAX * TILE_COMMAND_LIST_SIZE
+
 
 SECTION "video utility", ROM0
 
@@ -104,17 +106,15 @@ set_bg_tile::
     ld      d, 0
     add     hl, de      ; hl is now _SCRN0 + x + (y * 32)
 
+    pop     bc          ; now has original de
+    ld      c, b        ; move tile index to c
+    ld      b, 0        ; operation is 0 - direct
+
+    push    hl          ; move target bg tile address to de
     pop     de
-
-      lcd_WaitVRAM      ; a safety-net, but if it has to halt, corruption
-                        ; of register a could still occur even with the push/pop
-    ld      [hl], d
-    ;ei
-
-    ;ld      [hl], d
+    call push_tile_command_list
 
     ret
-
 
 ; Loop through a row of the fade buffer to:
 ;   - decrement the fade value
@@ -162,6 +162,7 @@ update_tile_fade::
     xor     a
     ld      [hl], a     ; update the fade value
     ld      a, 255
+    ld      b, 0        ; operation
     jr      .write_bg
 .skip_clear_tile
     ld      [hl], a     ; update the fade value
@@ -175,16 +176,16 @@ update_tile_fade::
     jr      .skip
 
 .fade_tile
-    ld      a, [de]
-    add     16
+    ld      a, 16
+    ld      b, 1        ; operation 1 to indicate inc current by 16
 .write_bg
+    push    hl
+    push    bc
+    ld      c, a
+    call push_tile_command_list
+    pop     bc
+    pop     hl
 
-    push    af
-    lcd_WaitVRAM        ; a safety-net, but if it has to halt, corruption
-                        ; of register a could still occur even with the push/pop
-    pop     af
-    ld      [de], a     ; set bg tile
-    ei
 .skip
     inc     hl
     inc     de
@@ -200,4 +201,88 @@ update_tile_fade::
 .skip_reset_y
 
     ld      [current_fade_tile_y], a
+    ret
+
+
+; Push a bg tile operation into the command list
+;
+;Inputs:
+; de = destination
+; b = operation
+; c = value
+;Destroys:
+; BC, HL
+push_tile_command_list::
+    ld      a, [tile_command_list_length]
+
+    rlca
+    rlca
+
+    push    bc
+    ld      b, 0
+    ld      c, a
+
+    ld      hl, tile_command_list
+    add     hl, bc
+    pop     bc
+
+    ; structure:
+    ; - dest high
+    ; - dest low
+    ; - operation
+    ; - value
+
+    ld      a, d
+    ld      [hl+], a
+    ld      a, e
+    ld      [hl+], a
+    ld      a, b
+    ld      [hl+], a
+    ld      a, c
+    ld      [hl], a
+
+    ld      a, [tile_command_list_length]
+    inc     a
+    ld      [tile_command_list_length], a
+
+    ret
+
+
+apply_tile_command_list::
+
+    ld      hl, tile_command_list
+    ld      a, [tile_command_list_length]
+    ld      c, a
+
+    inc	    c
+    jr      .skip
+.loop
+    ld      a, [hl+]
+    ld      d, a        ; dest high byte
+    ld      a, [hl+]
+    ld      e, a        ; dest low byte
+    ld      a, [hl+]    ; condition
+    cp      1
+    jr      z, .condition_1
+
+.condition_0
+    ld      a, [hl+]    ; just write the value
+    jr      .write_bg
+
+.condition_1
+    ld      a, [hl+]    ; value
+    ld      b, a
+    ld      a, [de]
+    add     a, b        ; add stored value to current gb tile value
+
+.write_bg
+    push    af
+    lcd_WaitVRAM        ; a safety-net, but if it has to halt, corruption
+                        ; of register af could still occur even with the push/pop
+    pop     af
+    ld      [de], a     ; set bg tile
+
+.skip
+    dec	    c
+    jr      nz,.loop
     ret
