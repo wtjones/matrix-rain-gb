@@ -213,6 +213,7 @@ update_tile_fade::
 ;Destroys:
 ; BC, HL
 push_tile_command_list::
+    ; determine offset via length * 4
     ld      a, [tile_command_list_length]
 
     rlca
@@ -285,4 +286,18 @@ apply_tile_command_list::
 .skip
     dec	    c
     jr      nz,.loop
+    ret
+
+
+; For the given sprite x coord, return the aligned bg tile x coord.
+; If carry flag is set, sprite x does not align.
+; Inputs
+; A = sprite x coord
+; Outputs
+; A = tile x
+get_sprite_x_to_tile_x::
+    sub     8           ; OAM adjustment
+    rrca
+    rrca
+    rrca
     ret

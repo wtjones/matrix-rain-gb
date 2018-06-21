@@ -1,52 +1,75 @@
 INCLUDE "gbhw.inc"
 
-INITIAL_DROPLETS   EQU 20
+MAX_DROPLETS            EQU 10
+INITIAL_SPAWN_SPRITE_Y  EQU 8
+IDLE_SPRITE_Y           EQU 0
 
 SECTION "droplet vars", WRAM0
 
 droplets:: DS 40 * 4
 total_droplets:: DS 1
-sprite_x: DS 1
-sprite_y: DS 1
+droplet_sprite_x: DS 1
+droplet_sprite_y: DS 1
 tile: DS 1
+spawn_delay: DS 1                   ; countdown timer for next droplet
 fade_buffer:: DS _SCRN1 - _SCRN0
 
 SECTION "droplet", ROM0
 
 init_droplets::
-    ld      a,INITIAL_DROPLETS
-    ld      [total_droplets],a
-    ld      hl, droplets
 
     ; clear memory
+    ld      hl, droplets
     ld      bc, 40 * 4
     ld      a,0
     call    mem_Set
 
-    ld      hl, droplets
-    ld      bc, 0
-init_droplets_loop
+    xor     a
+    ld      [total_droplets],a
+    ld      [spawn_delay], a
+    ret
 
-    push bc
 
-    ; y
-    call    get_random_y
+spawn_droplet::
+    ; has the spawn delay reached zero?
+    ld      a, [spawn_delay]
+    cp      0
+    jr      z, .skip_return
+    dec     a
+    ld      [spawn_delay], a
+    ret
+.skip_return
+    call    fast_random
     ld      a, e
-    ld      [hl], a
+    and     %00000111
+    add     16
+    ld      [spawn_delay], a
 
-    ; x - there are 16 columns, so use sprite offset * 8
+    ; advance to the next idle droplet
+    ld      hl, droplets
+
+    ld      c, MAX_DROPLETS
+    inc     c
+    jr      .skip
+.loop
+    ; y
+    ld      a, [hl]
+
+    cp      IDLE_SPRITE_Y
+    jr      nz, .skip_to_next_droplet
+
+
+    ; found an idle droplet
+    ; set y
+    ld      [hl], INITIAL_SPAWN_SPRITE_Y
+
+
+    ; set x to random 0-19 multiplied by 8 to align with tiles
     inc     hl
-
     push    hl
-    ld      e,c
-    ld      h, 8
-    call mul_8b      ; hl = e * h
-    ld      a,l
-    add     8
-
-    pop hl
-    ld      [hl],a
-
+    call    get_random_sprite_x
+    pop     hl
+    ld      [hl], a
 
     ; tile
     inc     hl
@@ -57,55 +80,81 @@ init_droplets_loop
     ld      [hl],a
 
     ; attributes
-    inc hl
-    inc hl
+    inc     hl
+    inc     hl
 
-    pop bc
-    inc bc
+    ld      a, [total_droplets]
+    inc     a
+    ld      [total_droplets], a
+    ret
 
-    ld      a,[total_droplets]
-    cp      c
-
-    jr	nz,init_droplets_loop	;then loop.
+.skip_to_next_droplet
+    inc     hl
+    inc     hl
+    inc     hl
+    inc     hl
+.skip
+    dec     c
+    jr      nz, .loop
     ret
 
 
-get_random_y
-
+; Outputs
+; a = sprite x coord aligned to tiles (mod 8)
+; Destroys
+; e, hl
+get_random_sprite_x
     call fast_random
-
     ld     a,e
 
-    push hl
-    and     %00001110   ; we only want an even number
+    ; desired range is 0-19
+    and     %00011111
+    cp      a, SCRN_X_B       ; carry set if 20 > a
+    jr      c, .skip
+    sub     12
+.skip
     ld      e,a
-    ld      h,10
+    ld      h, 8
     call mul_8b      ; l now has e * 10
     ld      a,l
-    add     16
-
-    pop hl
+    add     8       ; first visible coord
 
     ret
 
-
+; Move each active droplet down and rotate the tile
+; Speed is based on memory position for variety
 move_droplets::
     ld      hl, droplets
-    ld      bc, 0
+    ld      c, MAX_DROPLETS
+    inc     c
+    jp      .skip
 
-move_droplets_loop
+.loop
 
     ; load variables with current record
     ld      a, [hl+]
-    ld      [sprite_y], a
-    inc     hl
+    ld      [droplet_sprite_y], a
+    ld      a, [hl+]
+    ld      [droplet_sprite_x], a
     ld      a, [hl]
     ld      [tile], a
     dec     hl
     dec     hl
 
+    ; is the droplet active?
+    ld      a, [droplet_sprite_y]
+    cp      IDLE_SPRITE_Y
+    jp      nz, .droplet_is_active
 
-.   ; determine droplet type 0-3
+    inc     hl
+    inc     hl
+    inc     hl
+    inc     hl
+    jp      .skip
+
+.droplet_is_active
+
+    ; determine droplet type 0-3
     ld      a,c
     and     %00000011
 
@@ -145,9 +194,17 @@ move_droplets_loop
 
 .inc_y
 
-    ld      a, [sprite_y]
+    ld      a, [droplet_sprite_y]
     add     e
-    ld      [sprite_y],a
+    ; if we are now offscreen, set the droplet to idle
+    cp      a, SCRN_Y + 16   ; carry flag set if 160 > y
+    jp      c, .inc_y_set_idle_skip
+    ld      a, [total_droplets]
+    dec     a
+    ld      [total_droplets], a
+    ld      a, IDLE_SPRITE_Y
+.inc_y_set_idle_skip
+    ld      [droplet_sprite_y], a
 .dont_move:
 
     ld      a,  [frame_count]
@@ -155,9 +212,8 @@ move_droplets_loop
     cp      %00000011
     jp      nz, .dont_cycle_character
 
-    ld      a,  [sprite_y]
-    cp      15          ; outside of first visible coord?
-                        ; todo: should probably 'park' the droplets
+    ld      a,  [droplet_sprite_y]
+    cp      IDLE_SPRITE_Y               ; is the droplet idle?
     jp      nc, .skip_tile_reset
     call    fast_random
     ld      a, e
@@ -171,49 +227,46 @@ move_droplets_loop
 .dont_cycle_character
 
 
-    ld      a, [sprite_y]
+    ld      a, [droplet_sprite_y]
     ld      [hl+], a
     inc     hl
     ld      a, [tile]
     ld      [hl+], a
     inc     hl
 
+.skip
 
-    inc bc
-    ld      a,[total_droplets]
-    cp      c
-    ;ld	a,b		;if b or c != 0,
-    ;or	c		;
-    jp	nz,move_droplets_loop	;then loop.
+    dec     c
+    jp      nz, .loop
     ret
 
 
+; Loop through droplets, setting any that have a y coord
+; aligned to a bg tile
 set_droplets_to_bg::
     ld      hl, droplets
     ld      bc, 0
 
-set_droplets_to_bg_loop
+.set_droplets_to_bg_loop
 
-    ; load variables with current record
+     ; load variables with current record
     ld      a, [hl+]
-    ld      [sprite_y], a
-    inc     hl
+    ld      [droplet_sprite_y], a
+    ld      a, [hl+]
+    ld      [droplet_sprite_x], a
     ld      a, [hl]
     ld      [tile], a
     dec     hl
     dec     hl
 
-
+    ;
     ; burn tile to background
-    ld      a, [sprite_y]
+    ;
 
-    ; are we onscreen?
-    ; visible range is 16 -> 159
-    cp      a, 16   ; carry flag set if 16 > y
-    jp      c, .set_droplets_to_bg_skip
-
-    cp      a, 159   ; carry flag set if 159 > y
-    jp      nc, .set_droplets_to_bg_skip
+    ; is the droplet active?
+    ld      a, [droplet_sprite_y]
+    cp      IDLE_SPRITE_Y
+    jp      z, .set_droplets_to_bg_skip
 
     ; adjust to non-OAM coords
     sub     16
@@ -225,11 +278,10 @@ set_droplets_to_bg_loop
 
     jp      nz, .set_droplets_to_bg_skip
 
-
-    ; divide by 8 to get y tile coord (0 - 17)
     ld      a, [tile]
     ld      d, a
 
+    ; divide by 8 to get y tile coord (0 - 17)
     ld      a, e
     rrca
     rrca
@@ -237,11 +289,16 @@ set_droplets_to_bg_loop
 
     ; is a > 17?
     ld      e, a
-    sub     a, 18
+    sub     a, SCRN_Y_B
     jr      nc, .set_droplets_to_bg_skip
-    ld      a, e
+    ld      b, e    ; tile y in b
 
-    ld      e, c
+    ; divide sprite x by 8 to get x tile coord (0 - 19)
+    ld      a, [droplet_sprite_x]
+    call    get_sprite_x_to_tile_x
+
+    ld      e, a
+    ld      a, b
 
     ; burn current character to tile map
     push    hl
@@ -264,6 +321,6 @@ set_droplets_to_bg_loop
     cp      c
     ;ld	a,b		;if b or c != 0,
     ;or	c		;
-    jp	nz, set_droplets_to_bg_loop	;then loop.
+    jp	nz, .set_droplets_to_bg_loop	;then loop.
     ret
 

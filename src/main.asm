@@ -33,6 +33,7 @@ start::
     xor     a
     ld      [tile_command_list_length], a
     call    move_droplets
+    call    spawn_droplet
     call    set_droplets_to_bg
     call    update_tile_fade
     call    wait_vblank
