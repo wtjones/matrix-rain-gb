@@ -36,6 +36,7 @@ start::
     call    spawn_droplet
     call    set_droplets_to_bg
     call    update_tile_fade
+    call    update_tile_fade
     call    wait_vblank
     call    _HRAM               ; start dma
     call    apply_tile_command_list

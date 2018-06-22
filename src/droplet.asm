@@ -39,9 +39,10 @@ spawn_droplet::
     ld      [spawn_delay], a
     ret
 .skip_return
+    ; reset the spawn delay with a random range
     call    fast_random
     ld      a, e
-    and     %00000111
+    and     %00000011
     add     16
     ld      [spawn_delay], a
 
@@ -56,7 +57,7 @@ spawn_droplet::
     ld      a, [hl]
 
     cp      IDLE_SPRITE_Y
-    jr      nz, .skip_to_next_droplet
+    jr      nz, .next
 
 
     ; found an idle droplet
@@ -88,7 +89,7 @@ spawn_droplet::
     ld      [total_droplets], a
     ret
 
-.skip_to_next_droplet
+.next
     inc     hl
     inc     hl
     inc     hl
@@ -226,7 +227,7 @@ move_droplets::
     ld      [tile], a
 .dont_cycle_character
 
-
+    ; write to droplet
     ld      a, [droplet_sprite_y]
     ld      [hl+], a
     inc     hl
@@ -245,9 +246,11 @@ move_droplets::
 ; aligned to a bg tile
 set_droplets_to_bg::
     ld      hl, droplets
-    ld      bc, 0
+    ld      c, MAX_DROPLETS
+    inc     c
+    jr      .skip
 
-.set_droplets_to_bg_loop
+.loop
 
      ; load variables with current record
     ld      a, [hl+]
@@ -266,7 +269,7 @@ set_droplets_to_bg::
     ; is the droplet active?
     ld      a, [droplet_sprite_y]
     cp      IDLE_SPRITE_Y
-    jp      z, .set_droplets_to_bg_skip
+    jr      z, .next
 
     ; adjust to non-OAM coords
     sub     16
@@ -276,7 +279,7 @@ set_droplets_to_bg::
     ; mod 8
     and     %00000111
 
-    jp      nz, .set_droplets_to_bg_skip
+    jr      nz, .next
 
     ld      a, [tile]
     ld      d, a
@@ -290,7 +293,7 @@ set_droplets_to_bg::
     ; is a > 17?
     ld      e, a
     sub     a, SCRN_Y_B
-    jr      nc, .set_droplets_to_bg_skip
+    jr      nc, .next
     ld      b, e    ; tile y in b
 
     ; divide sprite x by 8 to get x tile coord (0 - 19)
@@ -307,20 +310,14 @@ set_droplets_to_bg::
     pop     bc
     pop     hl
 
-
-.set_droplets_to_bg_skip
-
-
+.next
     inc     hl
     inc     hl
     inc     hl
     inc     hl
 
-    inc bc
-    ld      a, [total_droplets]
-    cp      c
-    ;ld	a,b		;if b or c != 0,
-    ;or	c		;
-    jp	nz, .set_droplets_to_bg_loop	;then loop.
+.skip
+    dec c
+    jr	nz, .loop
     ret
 
