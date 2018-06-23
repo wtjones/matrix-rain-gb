@@ -13,6 +13,7 @@ rgbasm -i include/ -obuild\init.obj src\init.asm
 rgbasm -i include/ -obuild\math.obj src\math.asm
 rgbasm -i include/ -obuild\memory.obj src\memory.asm
 rgbasm -i include/ -obuild\video.obj src\video.asm
+rgbasm -i include/ -obuild\random.obj src\random.asm
 rgblink -mbuild\matrix.map -nbuild\matrix.sym -obuild\matrix.gb ^
 build\header.obj ^
 build\main.obj ^
@@ -20,7 +21,8 @@ build\droplet.obj ^
 build\init.obj ^
 build\math.obj ^
 build\memory.obj ^
-build\video.obj
+build\video.obj ^
+build\random.obj
 
 rgbfix -p0 -v build\matrix.gb
 

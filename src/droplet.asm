@@ -40,8 +40,10 @@ spawn_droplet::
     ret
 .skip_return
     ; reset the spawn delay with a random range
+    push    bc
     call    fast_random
-    ld      a, e
+    pop     bc
+
     and     %00000011
     add     16
     ld      [spawn_delay], a
@@ -68,15 +70,20 @@ spawn_droplet::
     ; set x to random 0-19 multiplied by 8 to align with tiles
     inc     hl
     push    hl
+    push    bc
     call    get_random_sprite_x
+    pop     bc
     pop     hl
+
     ld      [hl], a
 
     ; tile
     inc     hl
 
+    push    bc
     call    fast_random
-    ld      a, e
+    pop     bc
+
     and     %00001111
     ld      [hl],a
 
@@ -99,28 +106,6 @@ spawn_droplet::
     jr      nz, .loop
     ret
 
-
-; Outputs
-; a = sprite x coord aligned to tiles (mod 8)
-; Destroys
-; e, hl
-get_random_sprite_x
-    call fast_random
-    ld     a,e
-
-    ; desired range is 0-19
-    and     %00011111
-    cp      a, SCRN_X_B       ; carry set if 20 > a
-    jr      c, .skip
-    sub     12
-.skip
-    ld      e,a
-    ld      h, 8
-    call mul_8b      ; l now has e * 10
-    ld      a,l
-    add     8       ; first visible coord
-
-    ret
 
 ; Move each active droplet down and rotate the tile
 ; Speed is based on memory position for variety
@@ -216,8 +201,10 @@ move_droplets::
     ld      a,  [droplet_sprite_y]
     cp      IDLE_SPRITE_Y               ; is the droplet idle?
     jp      nc, .skip_tile_reset
+    push    bc
     call    fast_random
-    ld      a, e
+    pop     bc
+
     and     %00001111   ; only want 0-15
     ld      [tile],a
 .skip_tile_reset

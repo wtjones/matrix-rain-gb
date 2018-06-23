@@ -69,22 +69,3 @@ mod_10::
     daa
     and     $0F
     ret
-
-
-fast_random::
-    push bc
-    ld a, [seed]
-    ld b, a
-
-    rrca ; multiply by 32
-    rrca
-    rrca
-    xor $1f
-
-    add a, b
-    sbc a, 255 ; carry
-
-    ld [seed], a
-    ld      e,a
-    pop bc
-    ret

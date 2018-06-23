@@ -1,6 +1,5 @@
 INCLUDE	"gbhw.inc"
 
-RANDOM_SEED         EQU 10
 START_TILE_SOURCE   EQU $8E00
 
 SECTION "init", ROM0
@@ -29,8 +28,7 @@ init::
     xor     a
     ld      [current_fade_tile_y], a
 
-    ld      a, RANDOM_SEED
-    ld      [seed],a
+    call    init_random
     call    init_droplets
 ret
 
