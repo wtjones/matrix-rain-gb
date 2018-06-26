@@ -6,13 +6,13 @@
         {
             "label": "echo",
             "type": "shell",
-            "command": "./build.bat",            
+            "windows": {
+                "command": "wsl make"
+            },
+            "command": "make",
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },
-            "options": {
-                "shell": {}
             },
             "presentation": {
                 "echo": true,
