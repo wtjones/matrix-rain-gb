@@ -139,7 +139,6 @@ move_droplets::
     jp      .skip
 
 .droplet_is_active
-
     ; determine droplet type 0-3
     ld      a,c
     and     %00000011
@@ -149,7 +148,9 @@ move_droplets::
     jp      z,.droplet_type_1
     cp      2
     jp      z,.droplet_type_2
-    ;jp      .droplet_type_1
+
+    ; disable type 3
+    jp      .droplet_type_2
 
 ; type 3 - move every fourth frame
 .droplet_type_3
@@ -167,7 +168,6 @@ move_droplets::
 
 ; type 1 - move every other frame
 .droplet_type_1
-
     ld      a,  [frame_count]
     and     %00000001           ; is this an even frame?
     jp      nz, .dont_move
@@ -179,7 +179,6 @@ move_droplets::
     ld      e, 1
 
 .inc_y
-
     ld      a, [droplet_sprite_y]
     add     e
     ; if we are now offscreen, set the droplet to idle
@@ -229,8 +228,7 @@ move_droplets::
     ret
 
 
-; Loop through droplets, setting any that have a y coord
-; aligned to a bg tile
+; Write any tile-aligned (with bg tiles) droplets to the bg map.
 set_droplets_to_bg::
     ld      hl, droplets
     ld      c, MAX_DROPLETS
@@ -238,7 +236,6 @@ set_droplets_to_bg::
     jr      .skip
 
 .loop
-
      ; load variables with current record
     ld      a, [hl+]
     ld      [droplet_sprite_y], a
@@ -288,6 +285,12 @@ set_droplets_to_bg::
     call    get_sprite_x_to_tile_x
 
     ld      e, a
+
+    ; The bg tile will start with first faded state. This is on
+    ; the next row, so just add 16.
+    ld      a, d
+    add     a, 16
+    ld      d, a
     ld      a, b
 
     ; burn current character to tile map

@@ -3,6 +3,7 @@ RANDOM_LENGTH          EQU 40
 
 SECTION "random vars", WRAM0
 
+seed:: DS 1
 next_random_offset:: DS 1
 
 SECTION "random", ROM0

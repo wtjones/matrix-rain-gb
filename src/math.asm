@@ -1,7 +1,3 @@
-SECTION "math vars", WRAM0
-seed:: DS 1
-
-
 SECTION "math", ROM0
 
 ;Inputs:

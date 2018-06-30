@@ -1,9 +1,11 @@
 INCLUDE	"gbhw.inc"
 INCLUDE "memory.inc"
 
-TILE_FADE_START             EQU 15
+TILE_FADE_STATE_0           EQU 15      ; initial - light gray
+TILE_FADE_STATE_1           EQU 9       ; dark gray
+TILE_FADE_STATE_2           EQU 5       ; dark gray stipple
 TILE_FADE_RATE              EQU 2
-TILE_FADE_ROW_LENGTH        EQU  SCRN_X_B
+TILE_FADE_ROW_LENGTH        EQU SCRN_X_B
 TILE_COMMAND_LIST_MAX       EQU 50
 TILE_COMMAND_LIST_SIZE      EQU 4
 
@@ -58,10 +60,10 @@ dmaend:
 
 ; Sets the colors to normal palette
 init_palette::
-    ld     a, %11100100     ; grey 3=11 (Black)
-                ; grey 2=10 (Dark grey)
-                ; grey 1=01 (Ligth grey)
-                ; grey 0=00 (Transparent)
+    ld     a, %00011011     ; grey 3=00 (Transparent)
+                            ; grey 2=01 (Ligth grey)
+                            ; grey 1=10 (Dark grey)
+                            ; grey 0=11 (Black)
     ld    [rBGP], a
     ld    [rOBP0], a         ; 48,49 are sprite palettes
                 ; set same as background
@@ -97,7 +99,7 @@ set_bg_tile::
     add     hl, bc      ; hl is now fade_buffer + (y * 32)
     ld      d, 0
     add     hl, de      ; hl is now fade_buffer + x + (y * 32)
-    ld      [hl], TILE_FADE_START
+    ld      [hl], TILE_FADE_STATE_0
 
     ; set the tile
     ld      hl, _SCRN0
@@ -166,11 +168,9 @@ update_tile_fade::
     jr      .write_bg
 .skip_clear_tile
     ld      [hl], a     ; update the fade value
-    cp      11
+    cp      TILE_FADE_STATE_1
     jr      z,  .fade_tile
-    cp      7
-    jr      z,  .fade_tile
-    cp      3
+    cp      TILE_FADE_STATE_2
     jr      z,  .fade_tile
 
     jr      .skip
