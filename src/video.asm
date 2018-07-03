@@ -14,9 +14,10 @@ SECTION "video vars", WRAM0
 frame_count:: DS 1
 vblank_flag:: DS 1
 current_fade_tile_y:: DS 1
-tile_command_list_length:: DS 1   ; offset of the next available record
+tile_command_list_length:: DS 1     ; offset of the next available record
 tile_command_list:: DS TILE_COMMAND_LIST_MAX * TILE_COMMAND_LIST_SIZE
-
+fade_buffer:: DS _SCRN1 - _SCRN0    ; One byte per bg tile to track the fade
+                                    ; of each droplet
 
 SECTION "video utility", ROM0
 

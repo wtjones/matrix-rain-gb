@@ -4,15 +4,15 @@ MAX_DROPLETS            EQU 10
 INITIAL_SPAWN_SPRITE_Y  EQU 8
 IDLE_SPRITE_Y           EQU 0
 
-SECTION "droplet vars", WRAM0
+SECTION "droplet oam vars", WRAM0[$C000]
+droplets:: DS 40 * 4                ; buffer of oam data for dma transfer
 
-droplets:: DS 40 * 4
+SECTION "droplet vars", WRAM0
 total_droplets:: DS 1
 droplet_sprite_x: DS 1
 droplet_sprite_y: DS 1
 tile: DS 1
 spawn_delay: DS 1                   ; countdown timer for next droplet
-fade_buffer:: DS _SCRN1 - _SCRN0
 
 SECTION "droplet", ROM0
 
