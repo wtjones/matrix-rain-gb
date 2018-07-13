@@ -7,9 +7,9 @@
             "label": "echo",
             "type": "shell",
             "windows": {
-                "command": "wsl make"
+                "command": "wsl make -B"
             },
-            "command": "make",
+            "command": "make -B",
             "group": {
                 "kind": "build",
                 "isDefault": true

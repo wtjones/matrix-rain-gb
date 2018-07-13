@@ -1,3 +1,8 @@
+# Use make -B due to the fact that .inc changes are not getting tracked
+# in dependencies.
+# Not yet sure how to utilize rgbasm -M (https://rednex.github.io/rgbds/rgbasm.1.html#M)
+# to resolve.
+
 ASM = rgbasm
 LINK = rgblink
 FIX = rgbfix
