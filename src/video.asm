@@ -278,10 +278,6 @@ apply_tile_command_list::
     add     a, b        ; add stored value to current gb tile value
 
 .write_bg
-    push    af
-    lcd_WaitVRAM        ; a safety-net, but if it has to halt, corruption
-                        ; of register af could still occur even with the push/pop
-    pop     af
     ld      [de], a     ; set bg tile
 
 .skip
