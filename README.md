@@ -30,3 +30,7 @@ Build targets are created in folder `build`. These include:
 * [RGBDS Z80](https://github.com/DonaldHays/rgbds-vscode) VS Code extension
 
 * [BGB](http://bgb.bircd.org/) emulator/debugger for the Game Boy
+
+## Resources
+
+* [Awesome Game Boy Development](https://github.com/avivace/awesome-gbdev)
