@@ -1,6 +1,7 @@
 INCLUDE "gbhw.inc"
 
-MAX_DROPLETS            EQU 10
+MAX_DROPLETS            EQU 20
+INITIAL_DROPLETS        EQU 20
 INITIAL_SPAWN_SPRITE_Y  EQU 8
 IDLE_SPRITE_Y           EQU 0
 
@@ -25,29 +26,53 @@ init_droplets::
     call    mem_Set
 
     xor     a
-    ld      [total_droplets],a
+    ld      [total_droplets], a
     ld      [spawn_delay], a
+
+    ; spawn max
+    jr      .skip
+.loop
+    call    spawn_droplet
+.skip
+    ld      a, [total_droplets]
+    cp      MAX_DROPLETS
+    jr      nz, .loop
+
+    call init_droplets_y
+    ret
+
+
+init_droplets_y:
+    ld      hl, droplets
+
+    ld      a, [total_droplets]
+    ld      c, a
+    inc     c
+    jp      .skip
+
+.loop
+    push    hl
+    push    bc
+    call    get_random_sprite_y
+    pop     bc
+    pop     hl
+
+    ld      [hl+], a
+    inc     hl
+    inc     hl
+    inc     hl
+.skip
+    dec     c
+    jp      nz, .loop
     ret
 
 
 spawn_droplet::
-    ; has the spawn delay reached zero?
-    ld      a, [spawn_delay]
-    cp      0
-    jr      z, .skip_return
-    dec     a
-    ld      [spawn_delay], a
+    ld      a, [total_droplets]
+    cp      MAX_DROPLETS
+    jr      nz, .skip_return
     ret
 .skip_return
-    ; reset the spawn delay with a random range
-    push    bc
-    call    fast_random
-    pop     bc
-
-    and     %00000011
-    add     16
-    ld      [spawn_delay], a
-
     ; advance to the next idle droplet
     ld      hl, droplets
 
@@ -61,11 +86,9 @@ spawn_droplet::
     cp      IDLE_SPRITE_Y
     jr      nz, .next
 
-
     ; found an idle droplet
     ; set y
     ld      [hl], INITIAL_SPAWN_SPRITE_Y
-
 
     ; set x to random 0-19 multiplied by 8 to align with tiles
     inc     hl
@@ -107,7 +130,7 @@ spawn_droplet::
     ret
 
 
-; Move each active droplet down and rotate the tile
+; Move each active droplet down and cycle the tile
 ; Speed is based on memory position for variety
 move_droplets::
     ld      hl, droplets
@@ -181,13 +204,13 @@ move_droplets::
 .inc_y
     ld      a, [droplet_sprite_y]
     add     e
-    ; if we are now offscreen, set the droplet to idle
+    ; if we are now offscreen, reset the droplet
     cp      a, SCRN_Y + 16   ; carry flag set if 160 > y
     jp      c, .inc_y_set_idle_skip
     ld      a, [total_droplets]
     dec     a
     ld      [total_droplets], a
-    ld      a, IDLE_SPRITE_Y
+    ld      a, INITIAL_SPAWN_SPRITE_Y
 .inc_y_set_idle_skip
     ld      [droplet_sprite_y], a
 .dont_move:
@@ -197,9 +220,6 @@ move_droplets::
     cp      %00000011
     jp      nz, .dont_cycle_character
 
-    ld      a,  [droplet_sprite_y]
-    cp      IDLE_SPRITE_Y               ; is the droplet idle?
-    jp      nc, .skip_tile_reset
     push    bc
     call    fast_random
     pop     bc
@@ -222,7 +242,6 @@ move_droplets::
     inc     hl
 
 .skip
-
     dec     c
     jp      nz, .loop
     ret

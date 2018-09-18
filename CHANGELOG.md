@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.3] - 2018-09-17
+
+### Changed
+
+- Use a lookup table for y position rather than a random function in asm
+
 ## [0.0.2] - 2018-07-03
 
 ### Added

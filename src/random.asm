@@ -1,16 +1,19 @@
 RANDOM_SEED            EQU 10
-RANDOM_LENGTH          EQU 40
+RANDOM_X_LENGTH        EQU 40
+RANDOM_Y_LENGTH        EQU 36
 
 SECTION "random vars", WRAM0
 
 seed:: DS 1
-next_random_offset:: DS 1
+next_random_x_offset:: DS 1
+next_random_y_offset:: DS 1
 
 SECTION "random", ROM0
 
 init_random::
     xor a
-    ld [next_random_offset], a
+    ld [next_random_x_offset], a
+    ld [next_random_y_offset], a
     ld      a, RANDOM_SEED
     ld      [seed],a
     ret
@@ -22,7 +25,7 @@ init_random::
 get_random_sprite_x::
     ld      hl, random_sprite_x      ; get start of random LUT
     ld      b, 0
-    ld      a, [next_random_offset]  ; current offset in LUT
+    ld      a, [next_random_x_offset]  ; current offset in LUT
     ld      c, a
     add     hl, bc
     ld      b, [hl]
@@ -31,11 +34,37 @@ get_random_sprite_x::
     ld      a, c
     inc     a
 
-    cp      a, RANDOM_LENGTH
+    cp      a, RANDOM_X_LENGTH
     jp      nz, .no_reset
     ld      a, 0
 .no_reset
-    ld      [next_random_offset], a
+    ld      [next_random_x_offset], a
+    ld      a, b
+    ret
+
+
+
+; Output:
+;   A - random tile-aligned x coord
+; Destroys:
+;   BC, HL
+get_random_sprite_y::
+    ld      hl, random_sprite_y      ; get start of random LUT
+    ld      b, 0
+    ld      a, [next_random_y_offset]  ; current offset in LUT
+    ld      c, a
+    add     hl, bc
+    ld      b, [hl]
+
+    ; inc offset
+    ld      a, c
+    inc     a
+
+    cp      a, RANDOM_X_LENGTH
+    jp      nz, .no_reset
+    ld      a, 0
+.no_reset
+    ld      [next_random_y_offset], a
     ld      a, b
     ret
 
@@ -74,6 +103,13 @@ fast_random::
 
 ; Table of tile-aligned sprite x values. Two sequences are used to improve
 ; randomness.
+; PowerShell: (0..19 | get-random -count 20 | %{'{0:X}' -f (8 + ($_ * 8)) }) -join ',$'
 random_sprite_x:
 DB $78,$40,$50,$58,$90,$70,$20,$48,$A0,$18,$88,$68,$8,$60,$80,$98,$28,$38,$30,$10
 DB $60,$78,$48,$18,$88,$50,$68,$90,$8,$58,$38,$20,$70,$40,$80,$30,$28,$10,$98,$A0
+
+; Table of tile-aligned sprite y values. Two sequences are used to improve
+; randomness.
+random_sprite_y:
+DB $50,$88,$60,$20,$10,$58,$70,$78,$80,$38,$68,$48,$40,$90,$30,$28,$98,$18
+DB $20,$50,$48,$30,$68,$88,$10,$38,$70,$60,$98,$80,$18,$78,$58,$40,$28,$90
