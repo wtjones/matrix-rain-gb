@@ -1,6 +1,14 @@
-# matrix.gb
+# matrix-rain.gb
 
-A [matrix rain effect](https://en.wikipedia.org/wiki/Matrix_digital_rain) for the Game Boy, written in LR35902 (Z80-like) assembler
+A [Matrix rain effect](https://en.wikipedia.org/wiki/Matrix_digital_rain) for the Game Boy, written in LR35902 (Z80-like) assembler
+
+<img src="https://user-images.githubusercontent.com/1031558/46263385-0de4a800-c4d4-11e8-90dd-e6175615cca6.gif" width="320" height="288">
+
+## Demonstrates
+
+* Memory write batching to optimize vblank utilization
+* DMA transfer
+* Look-up tables
 
 ## Building
 
