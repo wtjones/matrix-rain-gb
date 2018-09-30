@@ -30,7 +30,7 @@ Run either `make` from the WSL shell or `wsl make` from PowerShell.
 
 Build targets are created in folder `build`. These include:
 
-* rom file `matrix.gb`
+* rom file `matrix-rain.gb`
 * debug symbols
 
 ## Tools
