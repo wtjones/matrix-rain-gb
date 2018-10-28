@@ -7,7 +7,7 @@ ASM = rgbasm
 LINK = rgblink
 FIX = rgbfix
 
-ROM_NAME = matrix
+ROM_NAME = matrix-rain
 SRC_DIR     = src
 INC_DIR     = include
 BUILD_DIR   = build
