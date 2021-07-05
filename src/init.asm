@@ -39,12 +39,12 @@ ret
 ;   row 1: dark grey
 ;   row 2: light grey
 ;   row 3: light grey stipple
-init_tile_fade
+init_tile_fade:
     ; row 0: straight copy
     ld      hl, START_TILE_SOURCE
     ld      de, $8000
     ld      bc, 16 * 16
-init_tile_fade_loop
+.init_tile_fade_loop
 
     ld      a, [hl+]
     ld      [de], a
@@ -54,14 +54,14 @@ init_tile_fade_loop
     dec     bc
     ld      a, b  ;if b or c != 0,
     or      c
-    jr      nz, init_tile_fade_loop
+    jr      nz, .init_tile_fade_loop
 
 
     ; row 1: dark grey
     ld      hl, START_TILE_SOURCE
     ld      de, $8000 + (16 * 16)
     ld      bc, 16 * 16
-init_tile_fade_loop2
+.init_tile_fade_loop2
 
     inc     hl
     ld      a, %00000000    ; clear first byte
@@ -78,7 +78,7 @@ init_tile_fade_loop2
 
     ld      a,b     ;if b or c != 0,
     or      c
-    jr      nz, init_tile_fade_loop2
+    jr      nz, .init_tile_fade_loop2
 
 
     ; row 2: light grey
@@ -86,7 +86,7 @@ init_tile_fade_loop2
     ld      de, $8000 + (16 * 16) + (16 * 16)
     ld bc, 16 * 16
 
-init_tile_fade_loop3
+.init_tile_fade_loop3
     ld      a, [hl+]
 
     ld      [de], a
@@ -102,7 +102,7 @@ init_tile_fade_loop3
 
     ld      a,b     ;if b or c != 0,
     or      c
-    jr      nz, init_tile_fade_loop3
+    jr      nz, .init_tile_fade_loop3
 
 
     ; row 3: stipple
@@ -110,7 +110,7 @@ init_tile_fade_loop3
     ld      de, $8000 + (16 * 16) + (16 * 16) + (16 * 16)
     ld bc, 16 * 16
 
-init_tile_fade_loop4
+.init_tile_fade_loop4
 
     ld      a, c
     and     %00000011
@@ -138,6 +138,6 @@ init_tile_fade_loop4
 
     ld      a,b     ;if b or c != 0,
     or      c
-    jr      nz, init_tile_fade_loop4
+    jr      nz, .init_tile_fade_loop4
 
     ret
