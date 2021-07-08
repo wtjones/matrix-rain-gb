@@ -105,7 +105,7 @@ fast_random::
 ; randomness.
 ; PowerShell: (0..19 | get-random -count 20 | %{'{0:X}' -f (8 + ($_ * 8)) }) -join ',$'
 random_sprite_x:
-DB $78,$40,$50,$58,$90,$70,$20,$48,$A0,$18,$88,$68,$8,$60,$80,$98,$28,$38,$30,$10
+DB $30,$40,$50,$28,$90,$70,$8,$48,$A0,$18,$88,$68,$20,$60,$80,$98,$58,$38,$78,$10
 DB $60,$78,$48,$18,$88,$50,$68,$90,$8,$58,$38,$20,$70,$40,$80,$30,$28,$10,$98,$A0
 
 ; Table of tile-aligned sprite y values. Two sequences are used to improve
