@@ -25,9 +25,9 @@
 ; If all of these are already defined, don't do it again.
 
         IF      !DEF(IBMPC1_INC)
-IBMPC1_INC  SET  1
+IBMPC1_INC = 1
 
-rev_Check_ibmpc1_inc: MACRO
+MACRO rev_Check_ibmpc1_inc
 ;NOTE: REVISION NUMBER CHANGES MUST BE ADDED
 ;TO SECOND PARAMETER IN FOLLOWING LINE.
         IF      \1 > 1.3      ; <--- PUT REVISION NUMBER HERE
@@ -35,7 +35,7 @@ rev_Check_ibmpc1_inc: MACRO
         ENDC
         ENDM
 
-chr_IBMPC1: MACRO
+MACRO chr_IBMPC1
 
         IF      (\1 == 0) || (\2 == 0) || (\1 > \2) || (\2 > 8)
         FAIL    "Font range values are invalid"

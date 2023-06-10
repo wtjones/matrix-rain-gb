@@ -22,9 +22,9 @@
 ; If all of these are already defined, don't do it again.
 
         IF      !DEF(HARDWARE_INC)
-HARDWARE_INC  SET  1
+HARDWARE_INC = 1
 
-rev_Check_hardware_inc: MACRO
+MACRO rev_Check_hardware_inc
 ;NOTE: REVISION NUMBER CHANGES MUST BE ADDED
 ;TO SECOND PARAMETER IN FOLLOWING LINE.
         IF      \1 > 2.2      ;PUT REVISION NUMBER HERE
@@ -708,7 +708,7 @@ SCRN_VY    EQU  256 ; Virtual height of screen in pixels
 SCRN_VX_B  EQU  32  ; Virtual width of screen in bytes
 SCRN_VY_B  EQU  32  ; Virtual height of screen in bytes
 
-NINTENDO_LOGO:   MACRO
+MACRO NINTENDO_LOGO
 ;*
 ;* Nintendo scrolling logo
 ;* (Code won't work on a real GameBoy)
