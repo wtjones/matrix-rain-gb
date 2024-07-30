@@ -1,13 +1,13 @@
 INCLUDE	"gbhw.inc"
 INCLUDE "memory.inc"
 
-TILE_FADE_STATE_0           EQU 15      ; initial - light gray
-TILE_FADE_STATE_1           EQU 9       ; dark gray
-TILE_FADE_STATE_2           EQU 5       ; dark gray stipple
-TILE_FADE_RATE              EQU 2
-TILE_FADE_ROW_LENGTH        EQU SCRN_X_B
-TILE_COMMAND_LIST_MAX       EQU 50
-TILE_COMMAND_LIST_SIZE      EQU 4
+DEF TILE_FADE_STATE_0           EQU 15      ; initial - light gray
+DEF TILE_FADE_STATE_1           EQU 9       ; dark gray
+DEF TILE_FADE_STATE_2           EQU 5       ; dark gray stipple
+DEF TILE_FADE_RATE              EQU 2
+DEF TILE_FADE_ROW_LENGTH        EQU SCRN_X_B
+DEF TILE_COMMAND_LIST_MAX       EQU 50
+DEF TILE_COMMAND_LIST_SIZE      EQU 4
 
 SECTION "video vars", WRAM0
 

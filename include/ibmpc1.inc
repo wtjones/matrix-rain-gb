@@ -25,7 +25,7 @@
 ; If all of these are already defined, don't do it again.
 
         IF      !DEF(IBMPC1_INC)
-IBMPC1_INC = 1
+DEF IBMPC1_INC = 1
 
 MACRO rev_Check_ibmpc1_inc
 ;NOTE: REVISION NUMBER CHANGES MUST BE ADDED

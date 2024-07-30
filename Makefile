@@ -30,7 +30,7 @@ $(OUTPUT): $(OBJECTS)
 	$(FIX) $(FIX_FLAGS) $@.gb
 
 build/%.obj: src/%.asm
-	$(ASM) -i$(INCDIR)/ -o$@ $<
+	$(ASM) -I$(INCDIR)/ -o$@ $<
 
 clean:
 	rm -rf $(BUILD_DIR)/*

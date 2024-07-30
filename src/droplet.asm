@@ -1,9 +1,9 @@
 INCLUDE "gbhw.inc"
 
-MAX_DROPLETS            EQU 14
-INITIAL_DROPLETS        EQU 14
-INITIAL_SPAWN_SPRITE_Y  EQU 8
-IDLE_SPRITE_Y           EQU 0
+DEF MAX_DROPLETS            EQU 14
+DEF INITIAL_DROPLETS        EQU 14
+DEF INITIAL_SPAWN_SPRITE_Y  EQU 8
+DEF IDLE_SPRITE_Y           EQU 0
 
 SECTION "droplet oam vars", WRAM0[$C000]
 droplets:: DS 40 * 4                ; buffer of oam data for dma transfer
